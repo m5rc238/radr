@@ -20,7 +20,7 @@ Build a small, reproducible corpus from a few clearly defined sources; run compe
 
 ## Current stage
 
-**Stage 1 — controlled corpus.** A small corpus builds end-to-end from registered sources: fetch → parse → normalize → dedupe → store → snapshot → inspect, as a Python CLI. 196 documents from 9 verified sources, each with full provenance; re-ingestion is repeatable. Next stage (retrieval baseline) not started.
+**Stage 1 — controlled corpus.** A small corpus builds end-to-end from registered sources: fetch → parse → normalize → dedupe → store → snapshot → inspect, as a Python CLI. 196 documents from 9 verified sources, each with full provenance; re-ingestion is repeatable. Next stage (retrieval baseline) not started. Full closing record (validation, bugs fixed, known limitations): `docs/stage1-report.md`.
 
 ### Quickstart (Stage 1)
 
@@ -65,6 +65,7 @@ These stages are a research path, not commitments; later stages may be revised o
 | `sources/sources.toml` | Machine-readable source registry (mirrors `SOURCES.md`) |
 | `tests/` | Corpus-integrity tests (offline; fake fetcher) |
 | `data/radar.db` | Corpus database — gitignored, regenerable by re-ingesting |
+| `docs/stage1-report.md` | Stage 1 closing report: validation results, bugs fixed, known limitations |
 | `docs/experiments/` | Experiment records (question, method, result, conclusion) |
 
 ## How to contribute or experiment
