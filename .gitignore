@@ -1,0 +1,41 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# Environment / secrets
+.env
+.env.*
+*.key
+
+# Python (likely, not yet decided — see DECISIONS.md)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node (only if a later stage introduces it)
+node_modules/
+dist/
+
+# Experiment artifacts and local data (keep out of version control;
+# record conclusions in docs/experiments/, not raw dumps here)
+data/
+corpus/
+*.db
+*.sqlite
+*.sqlite3
+*.duckdb
+*.jsonl
+!docs/**/*.jsonl
+
+# Retrieval run outputs (large, regenerable)
+runs/
+indexes/
+models/
