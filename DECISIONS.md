@@ -15,7 +15,7 @@ Every architectural decision in this project is recorded here with its reasoning
 
 **Reason:** We need a measurable baseline. Without a non-LLM baseline, any later result attributed to "LLM assistance" is uninterpretable — there is nothing to compare it against, and no way to detect regressions.
 
-**Consequence:** Stages 1–3 contain no LLM components. This is a sequencing decision, not a claim that LLMs are useless.
+**Consequence:** No LLM components enter the system before Stage 7 (selective LLM assistance); Stages 1–3 build the conventional baseline first. This is a sequencing decision, not a claim that LLMs are useless.
 
 ### Decision 2 — Use multiple retrieval methods
 
@@ -39,13 +39,43 @@ Every architectural decision in this project is recorded here with its reasoning
 
 **Reason:** The retrieval problem should be understood before optimizing presentation. A polished interface over weak retrieval makes weak retrieval harder to notice.
 
-**Consequence:** A minimal interface appears only at Stage 5, after retrieval and evaluation exist.
+**Consequence:** A minimal interface appears only at Stage 6, after retrieval, evaluation, and temporal monitoring exist.
 
 ### Decision 6 — The system must expose uncertainty and retrieval limitations
 
 **Reason:** The project is explicitly investigating *reliable* access to information. A system that conceals what it did not find, or presents LLM interpretation as fact, undermines the very thing being tested (`PROJECT.md`, non-goals).
 
 **Consequence:** Outputs carry provenance, scores, and method identity; unknown fields are marked unknown rather than filled in.
+
+### Decision 7 — Treat attention as a constrained resource
+
+**Reason:** The goal is not simply retrieval accuracy. The eventual system should investigate whether useful information can be surfaced with less human inspection — attention cost is a first-class concern alongside recall and relevance (`PROJECT.md`, attention is a resource).
+
+**Consequence:** Evaluation includes inspection burden and verification time (`EVALUATION.md`); no design may claim success on retrieval metrics alone.
+
+### Decision 8 — Do not build a feed
+
+**Reason:** The project is explicitly investigating an alternative to continuous information consumption. An engagement-optimized or continuously updating surface would work against the research question (`PROJECT.md`, this is not a better feed).
+
+**Consequence:** The interface (Stage 6) supports intermittent inspection; nothing may be optimized for time spent, scrolling, or documents surfaced (`PROJECT.md`, non-goals).
+
+### Decision 9 — Separate retrieval from importance
+
+**Reason:** Finding a document and determining whether it deserves attention are different problems. Collapsing them lets a system claim success by retrieving a lot while surfacing little that matters.
+
+**Consequence:** The pipeline ranks candidates only after retrieval and change detection (`ARCHITECTURE.md`), and evaluation reports discovery and ranking as separate dimensions (`EVALUATION.md`).
+
+### Decision 10 — Separate novelty from meaningfulness
+
+**Reason:** New information is not necessarily important information. Treating "new" as "worth attention" is how feeds manufacture volume.
+
+**Consequence:** Novelty/change detection and importance judgment are distinct steps and distinct judgment types; a novel item is not promoted on novelty alone (`EVALUATION.md`, concepts that must not be conflated).
+
+### Decision 11 — Treat meaningfulness as an empirical question
+
+**Reason:** The system should not silently encode its own definition of importance without evaluation. "Meaningful change" must ultimately involve human judgment (`PROJECT.md`).
+
+**Consequence:** The benchmark carries human meaningful-change judgments (Stage 3); any model-scored importance is evaluated against those judgments, never substituted for them.
 
 ---
 

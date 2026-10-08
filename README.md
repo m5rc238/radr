@@ -1,47 +1,50 @@
 # Information Radar
 
-A personal information retrieval system that helps a person detect **meaningful changes in a set of topics over time**, without constant information monitoring. It is built as a research project with a falsifiable hypothesis and measured evaluation.
+Information Radar is an experiment in detecting **meaningful changes in a defined information environment** without requiring continuous monitoring. It is a research project with a falsifiable hypothesis and measured evaluation.
 
-> **This project does not assume that an LLM is the best retrieval mechanism. It is designed to test that question.**
+> **This project does not assume that LLMs are the best way to retrieve information. It is designed to test that question.**
+
+## The problem
+
+People currently rely on feeds, alerts, search, newsletters, manual monitoring, and increasingly AI systems to stay informed. These approaches reduce some costs but can also create noise, attention burden, or incomplete retrieval. The goal here is not to maximize information consumption — it is to **minimize the attention required to remain meaningfully informed**. Full problem framing: `PROJECT.md`.
 
 ## Research question
 
-> **Can a retrieval system reliably surface information that is relevant and important enough that a person would otherwise have needed to find it themselves?**
+> **Can a retrieval and monitoring system reliably surface relevant and meaningful changes in a defined information environment while reducing the amount of information a person needs to inspect?**
 
-The system compares conventional information retrieval (BM25, dense, hybrid, reranking) with AI-assisted retrieval and reasoning, and measures the difference.
+This is an empirical question. The system compares conventional information retrieval (BM25, dense, hybrid, reranking) with AI-assisted retrieval, agentic search, and LLM reasoning — and measures what each approach finds **and what each costs in human attention** (`EVALUATION.md`).
 
-## Why retrieval quality matters
+## The experiment being prepared
 
-LLMs make information easier to access without necessarily making access to the information that *matters* more reliable. A fluent answer and a complete result set are different properties. This project measures recall, relevance, coverage, provenance, and human verification cost — the properties that determine whether important information was actually found. See `EVALUATION.md`.
-
-The system is judged as an information retrieval system, not as an AI application. **The primary concern is missed relevant information.**
+Build a small, reproducible corpus from a few clearly defined sources; run competing retrieval approaches over periodic snapshots of the same topics; and judge the results by hand — both **relevance** and **meaningful change**. Methods are compared on what they find (recall, discovery, coverage) and what they cost (inspection burden, verification time). The comparison includes conventional IR baselines first and LLM/agentic variants later, so the hypothesis in `PROJECT.md` can fail.
 
 ## Current stage
 
-**Stage 0 — project contract.** This repository contains documentation only: the problem definition, intended architecture, evaluation plan, source registry, decision log, and roadmap. No application code exists yet.
+**Stage 0 — project contract.** No application has been built yet. This repository contains the problem definition, intended architecture, evaluation framework, source registry, decision log, and roadmap.
 
 ## Planned stages
 
 | Stage | Focus |
 |---|---|
 | 0 | Project contract *(current)* |
-| 1 | Ingestion and a small, repeatable local corpus |
+| 1 | Controlled corpus: small, reproducible, clearly defined sources |
 | 2 | Retrieval baseline: BM25, dense, hybrid |
-| 3 | Manually judged benchmark and measured performance |
-| 4 | Temporal change detection across snapshots |
-| 5 | Simple interface: overview, changes, topics, sources, search, evaluation |
-| 6 | Selective LLM assistance, only where experiments show value |
-| 7 | Comparative experiments across the complete approaches |
+| 3 | Evaluation benchmark: human judgments for relevance and meaningful change |
+| 4 | Temporal monitoring: detect changes between snapshots |
+| 5 | Attention-aware ranking: reduce what a person must inspect |
+| 6 | Simple interface: changes, sources, evidence, inspection |
+| 7 | Selective LLM assistance, only where experiments show benefit |
+| 8 | Search strategy adaptation: recognizing and fixing retrieval gaps |
 
-Details and exit criteria: `ROADMAP.md`.
+These stages are a research path, not commitments; later stages may be revised or dropped (`ROADMAP.md`).
 
 ## Repository map
 
 | File | Contents |
 |---|---|
-| `PROJECT.md` | Problem, core hypothesis, non-goals, initial scope |
-| `ARCHITECTURE.md` | Intended pipeline, architectural principles, conceptual data model |
-| `EVALUATION.md` | Metrics, additional measures, concepts that must not be conflated |
+| `PROJECT.md` | Broader problem, research question, hypothesis, non-goals, scope |
+| `ARCHITECTURE.md` | Monitoring loop, architectural principles, conceptual data model |
+| `EVALUATION.md` | Metrics, attention-cost dimensions, concepts that must not be conflated |
 | `SOURCES.md` | Source registry and rules for adding sources |
 | `DECISIONS.md` | Decision log: established and proposed decisions with reasoning |
 | `ROADMAP.md` | Stages, goals, exit criteria |

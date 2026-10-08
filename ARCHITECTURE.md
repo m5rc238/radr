@@ -4,7 +4,7 @@
 
 This file describes the conceptual architecture the project expects to build, in stages (`ROADMAP.md`). It is a contract for future implementation, not a specification of libraries or infrastructure.
 
-## Pipeline
+## The system is a monitoring loop, not only a retrieval pipeline
 
 ```text
 Sources
@@ -17,41 +17,50 @@ Deduplication
    ↓
 Document Store
    ↓
-┌─────────────────────────────┐
-│ Retrieval                   │
-│                             │
-│ BM25 / lexical              │
-│ Dense / semantic            │
-│ Hybrid                      │
-└─────────────────────────────┘
+Retrieval
+   ├── BM25 / lexical
+   ├── Dense / semantic
+   └── Hybrid
    ↓
 Reranking
    ↓
-Temporal / change detection
+Temporal comparison
    ↓
-Evidence extraction
+Change detection
    ↓
-Selective LLM reasoning
+Candidate ranking
+   ↓
+Selective LLM assistance
    ↓
 Human inspection
+   ↓
+Evaluation / feedback
+   ↓
+Revised retrieval strategy
 ```
 
-Two properties of this pipeline matter:
+Properties of this loop:
 
 - **Provenance flows upward.** Every item that reaches human inspection can be traced back through its retrieval run to a stored document with its original URL and source.
 - **The human is in the loop by design.** The system surfaces candidates for investigation; it does not close the loop on its own judgment.
+- **Evaluation feeds back into strategy.** The bottom of the loop — evaluation and feedback — leads to a revised retrieval strategy. The eventual system may need to **recognize when its current search strategy is failing and change how it searches** (roadmap Stage 8). This is documented intent only: nothing in Stage 0 implements adaptation of any kind.
 
-## Central architectural principle
+## Central architectural principles
 
 **The LLM is not the retrieval system.**
 
 LLMs are treated as one possible component inside the system — never as the source of evidence, never as the sole arbiter of what matters. LLM output is an interpretation or transformation of retrieved information.
+
+**The project does not assume that LLM-based retrieval or agentic search is superior to conventional information retrieval.**
+
+The purpose of the experiment is to compare approaches, not to demonstrate a predetermined winner.
 
 Corollaries:
 
 - An LLM-generated summary is not a document and never enters the document store as a source.
 - Retrieval results must be measurable with or without any LLM component.
 - Uncertainty and retrieval limitations must remain visible to the person inspecting results (`DECISIONS.md`, Decision 6).
+- No component ordering below implies a quality ordering.
 
 ## Required comparison
 
@@ -67,7 +76,11 @@ vs
 Hybrid + reranking
 vs
 Hybrid + selective LLM assistance
+vs
+Agentic search
 ```
+
+**The ordering above does not represent increasing quality.** It is a list of approaches to be measured, not a ranking of expected performance; conventional methods may win, and that would be a valid result.
 
 This means each retrieval method must be a **replaceable component** behind a common interface: same inputs (query/topic, corpus snapshot), same outputs (ranked document IDs with scores), same evaluation harness (`EVALUATION.md`). If one method requires changing the data model or evaluation to run, the architecture has failed this requirement.
 
@@ -153,8 +166,9 @@ A retrieval run is the unit of comparison: every method's output on the same que
 |---|---|
 | query | the information need |
 | document | the candidate document |
-| relevance judgment | e.g. relevant / not relevant / unjudged |
+| judgment type | `relevance` or `meaningful-change` (`EVALUATION.md`) |
+| judgment | e.g. relevant / not relevant / meaningful change / not a meaningful change / unjudged |
 | evaluator | who judged it |
 | notes | why, ambiguities, disagreements |
 
-Judgments are the ground truth for `EVALUATION.md`. They are created by a human, not by an LLM, unless an experiment explicitly measures agreement between LLM judgments and human judgments — and reports it as such.
+Judgments are the ground truth for `EVALUATION.md`. They are created by a human, not by an LLM, unless an experiment explicitly measures agreement between LLM judgments and human judgments — and reports it as such. "Meaningful change" judgments are an evaluation variable requiring human judgment (`PROJECT.md`), not a label the system assigns to itself.

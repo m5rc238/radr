@@ -7,7 +7,7 @@ Every experiment in this project is recorded here as a short, self-contained mar
 Write a record whenever you:
 
 - compare two retrieval methods, models, or configurations
-- introduce or remove an LLM component (Stage 6+)
+- introduce or remove an LLM component (Stage 7+)
 - test an assumption listed as *proposed* in `DECISIONS.md`
 - produce a measurement that could change a decision
 - run something that failed — failures are results
