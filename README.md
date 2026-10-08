@@ -20,14 +20,27 @@ Build a small, reproducible corpus from a few clearly defined sources; run compe
 
 ## Current stage
 
-**Stage 0 — project contract.** No application has been built yet. This repository contains the problem definition, intended architecture, evaluation framework, source registry, decision log, and roadmap.
+**Stage 1 — controlled corpus.** A small corpus builds end-to-end from registered sources: fetch → parse → normalize → dedupe → store → snapshot → inspect, as a Python CLI. 196 documents from 9 verified sources, each with full provenance; re-ingestion is repeatable. Next stage (retrieval baseline) not started.
+
+### Quickstart (Stage 1)
+
+```sh
+python -m radar ingest                 # one ingestion cycle; creates a snapshot
+python -m radar stats                  # corpus statistics
+python -m radar snapshots              # list snapshots
+python -m radar inspect <doc-id>       # a document (id or unique prefix)
+python -m radar snapshot <snapshot-id> # a snapshot's sources and document set
+python -m unittest discover -s tests   # test suite (no network needed)
+```
+
+Python 3.11+, standard library only. Corpus lives in `data/radar.db` (gitignored; delete it and re-run `ingest` to rebuild). Source registry: `sources/sources.toml` (mirrors `SOURCES.md`).
 
 ## Planned stages
 
 | Stage | Focus |
 |---|---|
-| 0 | Project contract *(current)* |
-| 1 | Controlled corpus: small, reproducible, clearly defined sources |
+| 0 | Project contract |
+| 1 | Controlled corpus: small, reproducible, clearly defined sources *(current)* |
 | 2 | Retrieval baseline: BM25, dense, hybrid |
 | 3 | Evaluation benchmark: human judgments for relevance and meaningful change |
 | 4 | Temporal monitoring: detect changes between snapshots |
@@ -48,6 +61,10 @@ These stages are a research path, not commitments; later stages may be revised o
 | `SOURCES.md` | Source registry and rules for adding sources |
 | `DECISIONS.md` | Decision log: established and proposed decisions with reasoning |
 | `ROADMAP.md` | Stages, goals, exit criteria |
+| `radar/` | Stage 1 ingestion pipeline and CLI |
+| `sources/sources.toml` | Machine-readable source registry (mirrors `SOURCES.md`) |
+| `tests/` | Corpus-integrity tests (offline; fake fetcher) |
+| `data/radar.db` | Corpus database — gitignored, regenerable by re-ingesting |
 | `docs/experiments/` | Experiment records (question, method, result, conclusion) |
 
 ## How to contribute or experiment

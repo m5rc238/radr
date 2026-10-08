@@ -1,0 +1,131 @@
+# Information Radar — source registry (Stage 1)
+#
+# Every URL in this file was verified live on 2026-10-08 (HTTP 200,
+# feed parses as RSS 2.0). See SOURCES.md for rationale and provenance.
+#
+# Fields per source:
+#   id            stable identifier (used in the database)
+#   name          human-readable name
+#   url           canonical source URL
+#   feed_url      RSS/Atom endpoint used for ingestion
+#   source_type   academic | official-research | technical | news | other
+#   topics        list of configured topic names
+#   enabled       whether to ingest
+#   content_from  "feed"  -> document content comes from the feed entry
+#                 "page"  -> document content is fetched from the entry URL
+#   max_entries   cap on newest entries ingested per run (keeps corpus small)
+#   description   why this source is in the registry
+
+[ingest]
+user_agent = "InformationRadar/0.1 (personal research corpus; polite fetcher)"
+delay_seconds = 1.0
+timeout_seconds = 20
+robots_check = true
+
+[[sources]]
+id = "arxiv-cs-ai"
+name = "arXiv cs.AI"
+url = "https://arxiv.org/list/cs.AI/recent"
+feed_url = "https://rss.arxiv.org/rss/cs.AI"
+source_type = "academic"
+topics = ["AI systems"]
+enabled = true
+content_from = "feed"
+max_entries = 30
+description = "arXiv Artificial Intelligence listings; full abstracts in feed, stable /abs/ URLs, clear submission dates."
+
+[[sources]]
+id = "arxiv-cs-ir"
+name = "arXiv cs.IR"
+url = "https://arxiv.org/list/cs.IR/recent"
+feed_url = "https://rss.arxiv.org/rss/cs.IR"
+source_type = "academic"
+topics = ["Information Retrieval"]
+enabled = true
+content_from = "feed"
+max_entries = 30
+description = "arXiv Information Retrieval listings; core literature for the project's own field."
+
+[[sources]]
+id = "arxiv-cs-hc"
+name = "arXiv cs.HC"
+url = "https://arxiv.org/list/cs.HC/recent"
+feed_url = "https://rss.arxiv.org/rss/cs.HC"
+source_type = "academic"
+topics = ["HCI", "Human-AI Interaction"]
+enabled = true
+content_from = "feed"
+max_entries = 30
+description = "arXiv Human-Computer Interaction listings; covers HCI and human-AI interaction."
+
+[[sources]]
+id = "arxiv-cs-ma"
+name = "arXiv cs.MA"
+url = "https://arxiv.org/list/cs.MA/recent"
+feed_url = "https://rss.arxiv.org/rss/cs.MA"
+source_type = "academic"
+topics = ["AI agents"]
+enabled = true
+content_from = "feed"
+max_entries = 30
+description = "arXiv Multiagent Systems listings; closest arXiv category to AI agents."
+
+[[sources]]
+id = "arxiv-q-bio-nc"
+name = "arXiv q-bio.NC"
+url = "https://arxiv.org/list/q-bio.NC/recent"
+feed_url = "https://rss.arxiv.org/rss/q-bio.NC"
+source_type = "academic"
+topics = ["Cognitive science"]
+enabled = true
+content_from = "feed"
+max_entries = 20
+description = "arXiv Neurons and Cognition listings; the closest arXiv category to cognitive science."
+
+[[sources]]
+id = "google-ai-blog"
+name = "Google AI Blog"
+url = "https://blog.google/technology/ai/"
+feed_url = "https://blog.google/technology/ai/rss/"
+source_type = "official-research"
+topics = ["AI systems", "AI agents"]
+enabled = true
+content_from = "page"
+max_entries = 20
+description = "Google's official AI publication channel; feed carries only teaser text, so content is fetched from each article page."
+
+[[sources]]
+id = "deepmind-blog"
+name = "Google DeepMind Blog"
+url = "https://deepmind.google/blog/"
+feed_url = "https://deepmind.google/blog/rss.xml"
+source_type = "official-research"
+topics = ["AI systems", "AI agents"]
+enabled = true
+content_from = "page"
+max_entries = 20
+description = "DeepMind's official publication channel; feed carries little content, so content is fetched from each article page."
+
+[[sources]]
+id = "huggingface-blog"
+name = "Hugging Face Blog"
+url = "https://huggingface.co/blog"
+feed_url = "https://huggingface.co/blog/feed.xml"
+source_type = "technical"
+topics = ["AI systems"]
+enabled = true
+content_from = "page"
+max_entries = 15
+description = "Technical posts from a major ML tooling vendor; feed carries no content bodies, so content is fetched from each post page."
+
+[[sources]]
+id = "import-ai"
+name = "Import AI (Substack)"
+url = "https://importai.substack.com/"
+feed_url = "https://importai.substack.com/feed"
+source_type = "technical"
+topics = ["AI systems", "Evidence / epistemic research"]
+enabled = true
+content_from = "feed"
+max_entries = 20
+description = "Long-running AI newsletter with full text in the feed; a secondary/analysis source, clearly marked as such."

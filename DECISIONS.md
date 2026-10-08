@@ -1,11 +1,11 @@
 # DECISIONS.md — Decision Log
 
-**Status:** Stage 0 — initial decisions recorded.
+**Status:** Stage 1 complete — proposed decisions A, B, D, E confirmed and promoted below; Stage 1 implementation decisions recorded.
 
 Every architectural decision in this project is recorded here with its reasoning (`PROJECT.md` non-goal: hiding assumptions). Decisions are labeled:
 
-- **Established** — decided for Stage 0; changing one requires editing this file with the reason.
-- **Proposed** — suggested, not yet tested or agreed; may be overturned by an experiment or in Stage 1.
+- **Established** — decided; changing one requires editing this file with the reason.
+- **Proposed** — suggested, not yet tested or agreed; may be overturned by an experiment or in a later stage.
 
 ---
 
@@ -77,41 +77,79 @@ Every architectural decision in this project is recorded here with its reasoning
 
 **Consequence:** The benchmark carries human meaningful-change judgments (Stage 3); any model-scored importance is evaluated against those judgments, never substituted for them.
 
+### Decision 12 — Storage: one SQLite file; no vector database (confirmed from Proposed A)
+
+**Reason:** Confirmed in Stage 1. The corpus is small and the data model is simple (`ARCHITECTURE.md`); everything needed (documents, versions, observations, snapshots, runs) lives in one SQLite database with plain tables. A vector database remains infrastructure without a demonstrated need.
+
+**Consequence:** Corpus state is `data/radar.db` (gitignored, regenerable by re-ingesting). Dense retrieval in Stage 2 can store embeddings in ordinary tables; revisit only with a measured need (`ARCHITECTURE.md`, infrastructure restraint).
+
+### Decision 13 — Implementation language: Python 3.11, standard library only for Stage 1 (confirmed from Proposed B)
+
+**Reason:** Confirmed in Stage 1. `sqlite3`, `tomllib`, `urllib`, `xml.etree`, and `unittest` cover the entire Stage 1 pipeline with zero third-party dependencies — nothing to pin, audit, or break.
+
+**Consequence:** Stage 1 ships with no `requirements.txt`. Any later stage that needs a third-party library (e.g. an IR library in Stage 2) records the addition here with its justification; the choice does not affect the data model.
+
+### Decision 14 — Every ingest run creates an immutable corpus snapshot (confirmed from Proposed D)
+
+**Reason:** Confirmed in Stage 1. Retrieval runs are only comparable if every method ran against the same corpus state; snapshotting per ingest run is the simplest mechanism that guarantees it.
+
+**Consequence:** Each `python -m radar ingest` records a snapshot: the run's timestamp, per-source status, and the exact set of documents observed (a document can belong to several snapshots; its history is append-only — Decision 17). Interpretation note: `ARCHITECTURE.md` also gives Snapshot a *topic* field and *detected changes*; those are produced by Stage 4's temporal monitoring, not by ingestion. Stage 1 snapshots are corpus-state references only — a staging of that entity, not a redefinition of it.
+
+### Decision 15 — Version-control boundaries (confirmed from Proposed E)
+
+**Reason:** Confirmed in Stage 1: small, high-value, human-made artifacts belong in git; large, regenerable ones do not.
+
+**Consequence:** In git: documentation, `sources/sources.toml`, `radar/`, `tests/`. Ignored (`.gitignore`): `data/`, `*.db` — the corpus is rebuilt by re-ingestion, and the rebuild is validated as part of Stage 1 exit criteria.
+
+### Decision 16 — Document identity is the conservative canonical URL
+
+**Reason:** Identity must be stable across runs and sources without ever merging two documents that are not provably the same. A canonical form of the URL is the only identity signal available before fetching content.
+
+**Consequence:** `doc_id = sha256(canonical_url)[:16]`. Canonicalization is deliberately conservative: lowercase host, drop fragment, drop known tracking parameters (`utm_*`, `fbclid`, …), sort remaining query parameters, strip trailing slash, remove default ports. **http and https are not merged** — mapping schemes could wrongly fuse distinct documents; a duplicate with both schemes would surface as a cross-URL identical-content report instead (Decision 17).
+
+### Decision 17 — Change detection by content hash; history is append-only; identical content at different URLs is retained
+
+**Reason:** Content must be comparable across runs without overwriting evidence. Automatic merging of same-content documents risks destroying provenance; the conservative failure mode is to keep both and report.
+
+**Consequence:** `content_hash = sha256(normalized_content)`; a change appends a row to `document_versions` and never rewrites prior versions — old content stays retrievable. If two different canonical URLs produce the same content hash, both documents are **retained** and the run report counts `identical_content_other_url`; nothing is auto-rejected. Known source-side quirk, recorded honestly: arXiv feeds annotate entries with `Announce Type: new|cross`, and that text can flip for the same paper between announcements — genuine source-side text change, so it is recorded as a changed document rather than suppressed.
+
+### Decision 18 — Deduplication scope: one attempt per canonical URL per ingest run
+
+**Reason:** The same paper legitimately appears in multiple registered feeds (arXiv cross-lists announce it in each category feed). Processing it once per run keeps run reports meaningful and prevents a second feed's annotation differences from being recorded as content changes.
+
+**Consequence:** A run-wide seen-set: the first occurrence of a canonical URL in a run wins; later occurrences from any source are counted as `duplicates` and skipped. First-writer-wins means a document's `source_id` is the first registered source that carried it in the run that created it; the per-document URL remains the URL as discovered.
+
+### Decision 19 — Stage 1 interface is a CLI, not npm scripts
+
+**Reason:** The Stage 1 spec's `npm run …` examples assumed a Node toolchain; the implementation follows Decision 13 (Python) and needs no task runner.
+
+**Consequence:** Commands are `python -m radar ingest | stats | inspect <doc-id> | snapshot <id> | snapshots`, each accepting `--config` and `--db`. Same capabilities as the spec's examples (ingest, statistics, document inspection, snapshot inspection); capability parity, different spelling. Exit code is non-zero when any source failed, so partial runs are visible to scripts.
+
+### Decision 20 — Source registry is TOML
+
+**Reason:** The Stage 1 spec allows a format other than YAML; TOML is readable by humans and parsed by the Python standard library (`tomllib`), keeping Decision 13's zero-dependency promise.
+
+**Consequence:** `sources/sources.toml` is the machine-readable registry; `SOURCES.md` remains the human-facing registry and decision record. The two are kept consistent by construction: every source in the TOML has a verified entry in `SOURCES.md`.
+
+### Decision 21 — Per-source content provenance (`content_from`)
+
+**Reason:** Feeds differ: arXiv and Import AI carry full abstract/body text; the blog feeds carry teasers only. Treating them uniformly would either store teaser text as corpus content (weak evidence) or fetch pages that don't need fetching.
+
+**Consequence:** Each source declares `content_from = "feed"` or `"page"` in `sources/sources.toml`. Page mode fetches the entry's own URL through the same polite fetcher (robots, delay, decompression, binary rejection) and stores the normalized page text; fetch failures are recorded per entry without failing the source.
+
 ---
 
 ## Proposed decisions
 
-*Labelled proposed. These are starting points for Stage 1; they are not established facts and should be revisited with evidence.*
+*Labelled proposed. These are starting points for later stages; they are not established facts and should be revisited with evidence.*
 
-### Proposed A — Storage: flat files + a single relational database (e.g. SQLite); no vector database
-
-**Reason:** The corpus is small and the data model is simple (`ARCHITECTURE.md`). Dense retrieval can be computed with a standard library over embeddings stored in a table or file. A vector database is infrastructure without a demonstrated need.
-
-**Status:** Proposed. Revisit if an experiment measures a concrete need (`ARCHITECTURE.md`, infrastructure restraint).
-
-### Proposed B — Implementation language: Python
-
-**Reason:** Mature standard IR libraries and evaluation tooling exist in Python; lowest-friction path to a boring, measurable pipeline.
-
-**Status:** Proposed. Confirm in Stage 1; the choice does not affect the data model.
+**Resolved in Stage 1:** Proposed A (storage) → Decision 12; Proposed B (language) → Decision 13; Proposed D (snapshots) → Decision 14; Proposed E (version-control boundaries) → Decision 15. Promoted to Established above after implementation and validation. **Proposed C** remains proposed: Stage 1 has no embeddings, rerankers, or LLMs to isolate — it becomes testable when the first provider enters (Stage 2 or later).
 
 ### Proposed C — Provider isolation for embeddings, rerankers, and LLMs
 
 **Reason:** Retrieval models, embedding models, rerankers, and LLM providers must be replaceable (`PROJECT.md` constraints). All external model calls go through one thin interface, and runs record which provider/model/parameters produced them.
 
 **Status:** Proposed.
-
-### Proposed D — Immutable corpus snapshots
-
-**Reason:** Retrieval runs are only comparable if every method ran against the same corpus at the same state. Snapshots give each retrieval run a corpus-version reference, making results reproducible.
-
-**Status:** Proposed. Fits the Snapshot entity in `ARCHITECTURE.md`; exact mechanism decided in Stage 1.
-
-### Proposed E — What is version-controlled
-
-**Reason:** Small, high-value, human-made artifacts belong in git: documentation, judgments, experiment records, configuration. Large, regenerable artifacts (raw corpus, indexes, embeddings, run outputs) do not (`.gitignore`).
-
-**Status:** Proposed. Exact boundaries set when the corpus format is chosen in Stage 1.
 
 ### Proposed F — Human judgment as ground truth
 
